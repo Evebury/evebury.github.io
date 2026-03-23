@@ -1071,19 +1071,29 @@ dotnet add package <span class="string">Evebury.Gs1.Message</span></pre>
                 </div>
                 <div class="code-content" id="gdsn-usage">
                     <pre><span class="keyword">using</span> <span class="type">Evebury.Gs1.Message</span>;
+<span class="keyword">using</span> <span class="type">System.Globalization</span>;
+<span class="keyword">using</span> <span class="type">System.Xml</span>;
 
-<span class="comment">// Validate a GDSN message before sending to GS1</span>
-<span class="keyword">var</span> validator = <span class="keyword">new</span> <span class="type">GdsnValidator</span>();
-<span class="keyword">var</span> result = validator.<span class="method">Validate</span>(gdsnMessage);
+<span class="comment">// Load the message</span>
+<span class="type">XmlDocument</span> message = <span class="keyword">new</span>();
+message.<span class="method">Load</span>(<span class="string">"catalogueItemNotificationMessage.xml"</span>);
 
-<span class="keyword">if</span> (!result.IsValid)
-{
-    <span class="keyword">foreach</span> (<span class="keyword">var</span> error <span class="keyword">in</span> result.Errors)
-    {
-        Console.<span class="method">WriteLine</span>(error.Message);
-        <span class="comment">// "GTIN check digit is invalid for '8710123456780'"</span>
-    }
-}</pre>
+<span class="comment">// Load optional previously sucessfuly published message</span>
+<span class="type">XmlDocument</span> previous = <span class="keyword">new</span>();
+previous.<span class="method">Load</span>(<span class="string">"catalogueItemNotificationMessageLastSucceeded.xml"</span>);
+
+<span class="comment">// Create the validator</span>
+<span class="type">Validator</span> validator = <span class="keyword">new</span>();
+
+<span class="comment">//this call will apply schema, compare and apply business rules</span>
+<span class="type">Response</span> response = validator.<span class="method">Validate</span>(message, previous);
+
+<span class="comment">// set the cultureinfo to localize the reponse</span>
+<span class="type">CultureInfo</span> cultureInfo = <span class="keyword">new</span>(<span class="string">"nl"</span>);
+response.<span class="method">Localize</span>(cultureInfo);
+
+<span class="comment">// Check if OK or ERROR</span>
+Console.<span class="method">WriteLine</span>(response.Status == <span class="type">StatusType</span>.OK);</pre>
                 </div>
             </div>
 
@@ -1160,16 +1170,48 @@ dotnet add package <span class="string">Evebury.Gs1.DigitalLink</span></pre>
                 </div>
                 <div class="code-content" id="dl-usage">
                     <pre><span class="keyword">using</span> <span class="type">Evebury.Gs1.DigitalLink</span>;
+<span class="keyword">using</span> <span class="type">System</span>;
+<span class="keyword">using</span> <span class="type">System.Collections.Generic</span>;
 
-<span class="comment">// Build a GS1 Digital Link URI with fluent API</span>
-<span class="keyword">var</span> link = <span class="type">DigitalLinkBuilder</span>
-    .<span class="method">Create</span>(<span class="string">"https://your-domain.com"</span>)
-    .<span class="method">WithGtin</span>(<span class="string">"08710123456789"</span>)
-    .<span class="method">WithBatchLot</span>(<span class="string">"ABC123"</span>)
-    .<span class="method">Build</span>();
+<span class="comment">//construct the builder</span>
+<span class="type">DigitalLinkBuilder</span> builder = <span class="keyword">new</span>();
 
-Console.<span class="method">WriteLine</span>(link.Uri);
-<span class="comment">// https://your-domain.com/01/08710123456789/10/ABC123</span></pre>
+<span class="comment">//set the primary key this is required!</span>
+builder.<span class="method">SetPrimaryKey</span>(<span class="type">PrimaryKeyType</span>.GTIN, <span class="string">"00074562000525"</span>);
+
+<span class="comment">//optionally set your custom domain</span>
+builder.<span class="method">SetCustomDomainUri</span>(<span class="string">"https://www.evebury.com"</span>);
+
+<span class="comment">//add a date</span>
+builder.<span class="method">AddDate</span>(<span class="type">DateType</span>.PRODUCTION_DATE, <span class="type">DateTime</span>.Now);
+
+<span class="comment">//add a list value</span>
+builder.<span class="method">AddString</span>(<span class="type">StringType</span>.INTERNAL_COMPANY, <span class="string">"value1/with slash"</span>);
+builder.<span class="method">AddString</span>(<span class="type">StringType</span>.INTERNAL_COMPANY, <span class="string">"value2"</span>);
+
+<span class="comment">//add net weight value (decimal precision inferred)</span>
+builder.<span class="method">AddNetWeight</span>(<span class="keyword">new</span> <span class="type">Weight</span>(<span class="number">290.3</span>, <span class="type">WeightUnit</span>.POUNDS));
+
+<span class="comment">//add price value set to the decimal precision</span>
+builder.<span class="method">AddPrice</span>(<span class="type">PriceType</span>.PRICE_TRADE_ITEM, <span class="keyword">new</span> <span class="type">Price</span>(<span class="number">88</span>, <span class="number">2</span>, <span class="type">CurrencyCode</span>.EUR));
+
+<span class="type">DigitalLink</span> link = builder.<span class="method">Build</span>();
+
+<span class="keyword">if</span> (!link.IsValid)
+{
+    Console.<span class="method">WriteLine</span>(<span class="string">"Errors:"</span>);
+    <span class="type">List&lt;ValidationError&gt;</span> errors = link.<span class="method">GetValidationErrors</span>();
+    <span class="keyword">foreach</span> (<span class="type">ValidationError</span> error <span class="keyword">in</span> errors)
+    {
+        Console.<span class="method">WriteLine</span>(error);
+    }
+}
+<span class="keyword">else</span>
+{
+    Console.<span class="method">Write</span>(<span class="string">"Payload: "</span>);
+    <span class="comment">//https://www.evebury.com/01/00074562000525?11=260318&amp;3201=002903&amp;3932=9788800&amp;91=value1%2fwith+slash&amp;92=value2</span>
+    Console.<span class="method">WriteLine</span>(link.Uri);
+}</pre>
                 </div>
             </div>
 
@@ -1289,13 +1331,22 @@ dotnet add package <span class="string">Evebury.Typography.OpenType</span></pre>
                 </div>
                 <div class="code-content" id="typo-usage">
                     <pre><span class="keyword">using</span> <span class="type">Evebury.Typography.OpenType</span>;
+<span class="keyword">using</span> <span class="type">Evebury.Typography.OpenType.Fonts.Info</span>;
+<span class="keyword">using</span> <span class="type">Evebury.Typography.OpenType.Text</span>;
 
-<span class="comment">// Load an OpenType font and get metrics</span>
-<span class="keyword">var</span> font = <span class="type">OpenTypeFont</span>.<span class="method">Load</span>(<span class="string">"path/to/font.ttf"</span>);
-<span class="keyword">var</span> metrics = font.<span class="method">GetMetrics</span>(<span class="string">"Hello World"</span>, fontSize: <span class="number">12</span>);
+<span class="comment">// Load a font</span>
+<span class="keyword">var</span> font = <span class="keyword">new</span> <span class="type">Font</span>();
+font.<span class="method">Load</span>(fontBytes);
 
-Console.<span class="method">WriteLine</span>(<span class="string">$"Width: {metrics.Width}px"</span>);
-Console.<span class="method">WriteLine</span>(<span class="string">$"Height: {metrics.Height}px"</span>);</pre>
+<span class="comment">// Create text style</span>
+<span class="keyword">var</span> textStyle = <span class="keyword">new</span> <span class="type">TextStyle</span>(<span class="number">12.0f</span>); <span class="comment">// 12pt font size</span>
+
+<span class="comment">// Get text metrics</span>
+<span class="keyword">var</span> metrics = font.<span class="method">GetTextMetrics</span>(<span class="string">"Hello World"</span>, textStyle);
+Console.<span class="method">WriteLine</span>(<span class="string">$"Width: {metrics.Width}pt, Height: {metrics.Height}pt"</span>);
+
+<span class="comment">// Get individual glyph metrics</span>
+<span class="keyword">var</span> glyphMetrics = font.<span class="method">GetGlyphMetrics</span>(<span class="string">'A'</span>, <span class="number">12.0f</span>);</pre>
                 </div>
             </div>
 
