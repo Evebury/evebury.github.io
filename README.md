@@ -6,19 +6,19 @@ This repository hosts the [evebury.github.io](https://evebury.github.io) website
 
 ## Libraries
 
-### Evebury.Gdsn.Gs1
+### Evebury.Gs1.Message
 A comprehensive .NET library for validating GDSN GS1 messages. Pre-validate your data before it reaches the GS1 network — catch errors early, save API costs, and reduce rejected messages.
 
 - GDSN v3.1.33 support
 - Validation messages in English, Dutch, French, and German
-- Smart delta updates for efficient catalog syncing
+- Smart delta updates for efficient catalog item syncing
 - Zero dependencies
 
-[![NuGet](https://img.shields.io/nuget/v/Evebury.Gdsn.Gs1?label=NuGet&color=FF4E45)](https://www.nuget.org/packages/Evebury.Gdsn.Gs1)
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?logo=github)](https://github.com/Evebury/Evebury.Gdsn.Gs1)
+[![NuGet](https://img.shields.io/nuget/v/Evebury.Gs1.Message?label=NuGet&color=FF4E45)](https://www.nuget.org/packages/Evebury.Gs1.Message)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?logo=github)](https://github.com/Evebury/Evebury.Gs1.Message)
 
 ```bash
-dotnet add package Evebury.Gdsn.Gs1
+dotnet add package Evebury.Gs1.Message
 ```
 
 ### Evebury.Gs1.DigitalLink
