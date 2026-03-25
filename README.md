@@ -28,6 +28,7 @@ A .NET library for generating strongly typed and validated GS1 Digital Link URIs
 - Custom branded domain support
 - Zero dependencies
 
+[![NuGet](https://img.shields.io/nuget/v/Evebury.Gs1.DigitalLink?label=NuGet&color=FF4E45)](https://www.nuget.org/packages/Evebury.Gs1.DigitalLink)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?logo=github)](https://github.com/Evebury/Evebury.Gs1.DigitalLink)
 
 ```bash
